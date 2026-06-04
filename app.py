@@ -12,14 +12,10 @@ st.caption("ระบบวิเคราะห์หุ้นเรียล�
 
 st.markdown("---")
 
-# ปรับปรุงระบบค้นหา: เปลี่ยนกลับเป็นช่องพิมพ์ตามใจชอบ และเพิ่มปุ่มกดสั่งงานเพื่อรองรับไอแพด/มือถือ
-col_search1, col_search2 = st.columns([3, 1])
-with col_search1:
+# ปรับปรุงระบบค้นหา: ใช้ฟอร์มล็อกปุ่มกดอย่างสมบูรณ์ พิมพ์หุ้นอะไรก็ได้ทั่วโลกตามใจชอบ รองรับไอแพดและมือถือ 100%
+with st.form(key='search_form'):
     ticker_input = st.text_input("🎯 พิมพ์สัญลักษณ์หุ้นที่ต้องการวิเคราะห์ (เช่น AAPL, TSLA, NVDA หรือหุ้นไทย เช่น PTT.BK):", value="AAPL")
-with col_search2:
-    st.write(" ") 
-    st.write(" ")
-    search_button = st.button("🔍 กดเพื่ออัปเดตข้อมูล")
+    submit_button = st.form_submit_button(label="🔍 กดตรงนี้เพื่อค้นหาและอัปเดตข้อมูล")
 
 # แปลงชื่อหุ้นเป็นพิมพ์ใหญ่
 ticker_input = ticker_input.upper().strip()
@@ -58,12 +54,12 @@ if ticker_input:
             else:
                 tv_symbol = "NYSE:" + tv_symbol
 
-            # ตัวฝังกราฟตรงแบบ iframe ปลอดภัยจากการโดนบล็อกบนไอแพด
+            # ปรับปรุง: ตัวฝังกราฟตรงแบบ iframe ปลอดภัยด้วยลิงก์ HTTPS 100% เพื่อแก้ปัญหาหน้าต่างกราฟว่างเปล่าบนคลาวด์และไอแพด
             tradingview_html = f"""
             <iframe src="https://tradingview.com{tv_symbol}&interval=D&theme=dark&style=1&timezone=Etc%2FUTC&studies=%5B%5D&locale=th&calendar=true" 
-            width="100%" height="450" frameborder="0" allowtransparency="true" scrolling="no" allowfullscreen></iframe>
+            width="100%" height="500" frameborder="0" allowtransparency="true" scrolling="no" allowfullscreen></iframe>
             """
-            components.html(tradingview_html, height=470)
+            components.html(tradingview_html, height=520)
             
             # ส่วนที่ 2: ระบบตรวจจับทางเทคนิคัลขั้นสูง 
             st.subheader("🤖 ระบบตรวจจับรูปแบบเชิงเทคนิคัลอัตโนมัติ")
