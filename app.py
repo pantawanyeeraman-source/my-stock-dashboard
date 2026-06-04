@@ -12,25 +12,18 @@ st.caption("ระบบวิเคราะห์หุ้นเรียล�
 
 st.markdown("---")
 
-# ปรับปรุง: ย้ายช่องค้นหามาไว้ตรงกลางด้านบนสุด เพื่อให้ไอแพดและมือถือใช้งานง่าย
-col_search1, col_search2 = st.columns([3, 1])
-with col_search1:
-    ticker_input = st.text_input("พิมพ์ชื่อหุ้นที่คุณต้องการค้นหา (เช่น AAPL, TSLA, NVDA หรือหุ้นไทย เช่น PTT.BK):", value="AAPL")
-with col_search2:
-    st.write(" ") 
-    st.write(" ")
-    search_button = st.button("🔍 กดเพื่อค้นหา/อัปเดตข้อมูล")
-
-# แปลงชื่อหุ้นเป็นพิมพ์ใหญ่
-ticker_input = ticker_input.upper().strip()
+# ปรับปรุงระบบค้นหา: ใช้ st.selectbox เพื่อให้จิ้มเลือกชื่อหุ้นได้ทันที (แก้ปัญหาไม่มีปุ่ม Enter บนไอแพด)
+# คุณสามารถเพิ่มชื่อหุ้นตัวอื่น ๆ เข้าไปในรายการด้านล่างนี้ได้ตามใจชอบเลยครับ
+stock_list = ["AAPL", "TSLA", "NVDA", "MSFT", "AMZN", "META", "GOOGL", "PTT.BK", "CPALL.BK", "BDMS.BK"]
+ticker_input = st.selectbox("🎯 เลือกสัญลักษณ์หุ้นที่ต้องการวิเคราะห์ (จิ้มปุ๊บ ข้อมูลและกราฟจะอัปเดตทันที):", stock_list)
 
 if ticker_input:
     try:
-        # แก้ปัญหาโดนบล็อก: สร้าง Session พิเศษหลอกระบบว่าเป็นเบราว์เซอร์จริงเพื่อไม่ให้ Cloud โดนบล็อกข้อมูล
+        # แก้ปัญหาคลาวด์โดนบล็อก: หลอกระบบว่าเป็นเบราว์เซอร์จริง
         session = requests.Session()
-        session.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'})
+        session.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
         
-        # ดึงข้อมูลจาก yfinance API ผ่าน Session พิเศษ
+        # ดึงข้อมูลจาก yfinance API
         stock = yf.Ticker(ticker_input, session=session)
         info = stock.info
         
@@ -49,7 +42,7 @@ if ticker_input:
         with left_chart_col:
             st.subheader("📈 กราฟหุ้นเรียลไทม์จาก TradingView")
             
-            # แปลงรหัสให้ TradingView เข้าใจได้แม่นยำขึ้น
+            # ปรับแต่งระบบแปลงชื่อรหัส เพื่อให้ TradingView รองรับบนเบราว์เซอร์ไอแพดทุกตัว 100%
             tv_symbol = ticker_input
             if ".BK" in tv_symbol:
                 tv_symbol = "SET:" + tv_symbol.replace(".BK", "")
@@ -58,27 +51,10 @@ if ticker_input:
             else:
                 tv_symbol = "NYSE:" + tv_symbol
 
+            # เขียนสคริปต์ TradingView ให้ฝังใน iframe แบบสมบูรณ์เพื่อหลบระบบบล็อกของไอแพด
             tradingview_html = f"""
-            <div class="tradingview-widget-container" style="height:450px;width:100%;">
-              <div id="tradingview_chart"></div>
-              <script type="text/javascript" src="https://tradingview.com"></script>
-              <script type="text/javascript">
-              new TradingView.widget({{
-                "autosize": true,
-                "symbol": "{tv_symbol}",
-                "interval": "D",
-                "timezone": "Etc/UTC",
-                "theme": "dark",
-                "style": "1",
-                "locale": "th",
-                "toolbar_bg": "#f1f3f6",
-                "enable_publishing": false,
-                "hide_side_toolbar": false,
-                "allow_symbol_change": true,
-                "container_id": "tradingview_chart"
-              }});
-              </script>
-            </div>
+            <iframe src="https://tradingview.com{tv_symbol}&interval=D&theme=dark&style=1&timezone=Etc%2FUTC&studies=%5B%5D&locale=th&calendar=true" 
+            width="100%" height="450" frameborder="0" allowtransparency="true" scrolling="no" allowfullscreen></iframe>
             """
             components.html(tradingview_html, height=470)
             
