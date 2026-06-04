@@ -12,10 +12,9 @@ st.caption("ระบบวิเคราะห์หุ้นเรียล�
 
 st.markdown("---")
 
-# ปรับปรุงระบบค้นหา: ใช้ st.selectbox เพื่อให้จิ้มเลือกชื่อหุ้นได้ทันที (แก้ปัญหาไม่มีปุ่ม Enter บนไอแพด)
-# คุณสามารถเพิ่มชื่อหุ้นตัวอื่น ๆ เข้าไปในรายการด้านล่างนี้ได้ตามใจชอบเลยครับ
-stock_list = ["AAPL", "TSLA", "NVDA", "MSFT", "AMZN", "META", "GOOGL", "PTT.BK", "CPALL.BK", "BDMS.BK"]
-ticker_input = st.selectbox("🎯 เลือกสัญลักษณ์หุ้นที่ต้องการวิเคราะห์ (จิ้มปุ๊บ ข้อมูลและกราฟจะอัปเดตทันที):", stock_list)
+# แก้ไขระบบค้นหา: ให้พิมพ์ชื่อหุ้นอะไรก็ได้ และมีปุ่มกดสำหรับไอแพด
+ticker_input = st.text_input("🎯 พิมพ์สัญลักษณ์หุ้นที่ต้องการวิเคราะห์ (เช่น AAPL, TSLA, NVDA หรือหุ้นไทย เช่น PTT.BK):", value="AAPL")
+search_button = st.button("🔍 กดปุ่มนี้เพื่ออัปเดตข้อมูลหุ้น")
 
 if ticker_input:
     try:
@@ -39,10 +38,10 @@ if ticker_input:
         # จัด Layout หน้าจอแบ่งเป็น 2 ฝั่ง 
         left_chart_col, right_fundamental_col = st.columns(2)
         
-        with left_chart_col:
+with left_chart_col:
             st.subheader("📈 กราฟหุ้นเรียลไทม์จาก TradingView")
             
-            # ปรับแต่งระบบแปลงชื่อรหัส เพื่อให้ TradingView รองรับบนเบราว์เซอร์ไอแพดทุกตัว 100%
+            # ระบบแปลงรหัสสำหรับโครงสร้างกราฟ
             tv_symbol = ticker_input
             if ".BK" in tv_symbol:
                 tv_symbol = "SET:" + tv_symbol.replace(".BK", "")
@@ -51,7 +50,7 @@ if ticker_input:
             else:
                 tv_symbol = "NYSE:" + tv_symbol
 
-            # เขียนสคริปต์ TradingView ให้ฝังใน iframe แบบสมบูรณ์เพื่อหลบระบบบล็อกของไอแพด
+            # โค้ดสร้างกรอบกราฟ TradingView แบบฝังลิงก์ตรง (ชัวร์ที่สุดบนไอแพดและมือถือ)
             tradingview_html = f"""
             <iframe src="https://tradingview.com{tv_symbol}&interval=D&theme=dark&style=1&timezone=Etc%2FUTC&studies=%5B%5D&locale=th&calendar=true" 
             width="100%" height="450" frameborder="0" allowtransparency="true" scrolling="no" allowfullscreen></iframe>
