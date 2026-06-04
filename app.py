@@ -12,13 +12,21 @@ st.caption("ระบบวิเคราะห์หุ้นเรียล�
 
 st.markdown("---")
 
-# แก้ไขระบบค้นหา: ให้พิมพ์ชื่อหุ้นอะไรก็ได้ และมีปุ่มกดสำหรับไอแพด
-ticker_input = st.text_input("🎯 พิมพ์สัญลักษณ์หุ้นที่ต้องการวิเคราะห์ (เช่น AAPL, TSLA, NVDA หรือหุ้นไทย เช่น PTT.BK):", value="AAPL")
-search_button = st.button("🔍 กดปุ่มนี้เพื่ออัปเดตข้อมูลหุ้น")
+# ปรับปรุงระบบค้นหา: เปลี่ยนกลับเป็นช่องพิมพ์ตามใจชอบ และเพิ่มปุ่มกดสั่งงานเพื่อรองรับไอแพด/มือถือ
+col_search1, col_search2 = st.columns([3, 1])
+with col_search1:
+    ticker_input = st.text_input("🎯 พิมพ์สัญลักษณ์หุ้นที่ต้องการวิเคราะห์ (เช่น AAPL, TSLA, NVDA หรือหุ้นไทย เช่น PTT.BK):", value="AAPL")
+with col_search2:
+    st.write(" ") 
+    st.write(" ")
+    search_button = st.button("🔍 กดเพื่ออัปเดตข้อมูล")
+
+# แปลงชื่อหุ้นเป็นพิมพ์ใหญ่
+ticker_input = ticker_input.upper().strip()
 
 if ticker_input:
     try:
-        # แก้ปัญหาคลาวด์โดนบล็อก: หลอกระบบว่าเป็นเบราว์เซอร์จริง
+        # แก้ปัญหาคลาวด์โดนบล็อกข้อมูล
         session = requests.Session()
         session.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
         
@@ -29,8 +37,8 @@ if ticker_input:
         # ส่วนที่ 1: ข้อมูลทั่วไปและราคาเรียลไทม์
         col1, col2, col3, col4 = st.columns(4)
         col1.metric("ราคาปัจจุบัน", f"${info.get('currentPrice', info.get('regularMarketPrice', 0)):,.2f}")
-        col2.metric("เป้าหมายเฉลี่ยจากนักวิเคราะห์ (Target High)", f"${info.get('targetHighPrice', 0):,.2f}")
-        col3.metric("Forward P/E (การเติบโต)", f"{info.get('forwardPE', 0):,.2f}x")
+        col2.metric("เป้าหมายจากนักวิเคราะห์", f"${info.get('targetHighPrice', 0):,.2f}")
+        col3.metric("Forward P/E", f"{info.get('forwardPE', 0):,.2f}x")
         col4.metric("Market Cap", f"${info.get('marketCap', 0):,.0f}")
         
         st.markdown("---")
@@ -38,10 +46,10 @@ if ticker_input:
         # จัด Layout หน้าจอแบ่งเป็น 2 ฝั่ง 
         left_chart_col, right_fundamental_col = st.columns(2)
         
-with left_chart_col:
+        with left_chart_col:
             st.subheader("📈 กราฟหุ้นเรียลไทม์จาก TradingView")
             
-            # ระบบแปลงรหัสสำหรับโครงสร้างกราฟ
+            # แปลงรหัสระบบตลาดสำหรับกรอบ TradingView
             tv_symbol = ticker_input
             if ".BK" in tv_symbol:
                 tv_symbol = "SET:" + tv_symbol.replace(".BK", "")
@@ -50,7 +58,7 @@ with left_chart_col:
             else:
                 tv_symbol = "NYSE:" + tv_symbol
 
-            # โค้ดสร้างกรอบกราฟ TradingView แบบฝังลิงก์ตรง (ชัวร์ที่สุดบนไอแพดและมือถือ)
+            # ตัวฝังกราฟตรงแบบ iframe ปลอดภัยจากการโดนบล็อกบนไอแพด
             tradingview_html = f"""
             <iframe src="https://tradingview.com{tv_symbol}&interval=D&theme=dark&style=1&timezone=Etc%2FUTC&studies=%5B%5D&locale=th&calendar=true" 
             width="100%" height="450" frameborder="0" allowtransparency="true" scrolling="no" allowfullscreen></iframe>
